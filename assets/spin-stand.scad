@@ -19,7 +19,7 @@
 //  the plate until you trust it.
 // ===========================================================
 
-sz = 100;  t = 6;
+sz = 80;  t = 4;
 motor_dx = 16;  motor_dy = 19;    // MEASURED 5010 base cross
 center_hole = 13;
 groove_w = 8;  groove_d = 3.5;    // wire channel
@@ -32,15 +32,23 @@ difference() {
         translate([x*(sz/2 - 8), y*(sz/2 - 8), 0])
             cylinder(r = 8, h = t);
 
-    // motor cross (screws up from below) + centre clearance
-    for (p = [[-motor_dx/2, 0], [motor_dx/2, 0],
-              [0, -motor_dy/2], [0, motor_dy/2]])
-        translate([p[0], p[1], -1]) cylinder(d = 3.2, h = t + 2);
+    // motor cross at -45°: the wires exit 45° between the arms —
+    // chirality fixed from the bench (bottom view: long-pitch hole
+    // sits to the wire's LEFT), so MINUS 45 aims the exit down the
+    // +x channel. If a motor's exit mirrors, flip it 180° on the
+    // same holes. Counterbored screws keep the bottom flush.
+    rotate([0, 0, -45])
+        for (p = [[-motor_dx/2, 0], [motor_dx/2, 0],
+                  [0, -motor_dy/2], [0, motor_dy/2]]) {
+            translate([p[0], p[1], -1]) cylinder(d = 3.2, h = t + 2);
+            translate([p[0], p[1], -1]) cylinder(d = 6.5, h = 4);   // head + washer
+        }
     translate([0, 0, -1]) cylinder(d = center_hole, h = t + 2);
 
-    // wire channel: from the base edge out past the wheel shadow
-    translate([16, -groove_w/2, t - groove_d])
-        cube([sz/2 - 16 + 1, groove_w, groove_d + 1]);
+    // wire channel: widened + earlier mouth, since the wires root a
+    // few mm to one side of the long-axis hole
+    translate([14, -(groove_w + 2)/2, t - groove_d])
+        cube([sz/2 - 14 + 1, groove_w + 2, groove_d + 1]);
 
     // corner holes
     for (x = [-1, 1]) for (y = [-1, 1])
